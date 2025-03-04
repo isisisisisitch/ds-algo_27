@@ -1,9 +1,11 @@
-package ca.bytetube._03_list;
+package ca.bytetube._03_list.singly;
 
-public class LinkedList<E> extends AbstractList<E> {
+import ca.bytetube._03_list.AbstractList;
+
+public class SingleCircularLinkedList<E> extends AbstractList<E> {
     Node<E> first;
 
-    // Clear all the elements
+    @Override
     public void clear() {
         first = null;
         size = 0;
@@ -12,60 +14,65 @@ public class LinkedList<E> extends AbstractList<E> {
     private Node<E> node(int index) {
         rangeCheck(index);
         Node<E> node = first;
-        for (int i = 0; i < index; i++) {
-            node = node.next;
-        }
+        for (int i = 0; i < index; i++) node = node.next;
         return node;
     }
 
-    // Add elements to the index position
+    @Override
     public void add(int index, E element) {
         rangeCheckForAdd(index);
-        //头插
+        //head/first node
+        size++;
         if (index == 0) {
-            first = new Node<>(element, first);
-        } else {
-            //1.普通位置/尾部位置
-            Node<E> prevNode = node(index - 1);
-        /*
-        "="
-        1.赋值 int i = 10;===>从右向左看
-        2.指向  prevNode.next = newNode;===>从左向右看
+            Node<E> newFirst = new Node<>(element, first);
+            first = newFirst;
+            Node<E> last = (size == 0) ? newFirst : node(size - 1);
+            last.next = newFirst;
 
-         */
+        } else {
+            //current/tail
+            Node<E> prevNode = node(index - 1);
+
             prevNode.next = new Node<>(element, prevNode.next);
         }
 
-        size++;
     }
 
-
-    // Set the element at the index position
-    public E set(int index, E element) {
-        rangeCheck(index);
-        Node<E> oldNode = node(index);
-        E oldElement = oldNode.element;
-        oldNode.element = element;
-        return oldElement;
-    }
-
-    // Returns the element corresponding to the index position
+    @Override
     public E get(int index) {
         rangeCheck(index);
+
         return node(index).element;
     }
 
-    // Delete elements to the index position
+    @Override
+    public E set(int index, E element) {
+        rangeCheck(index);
+        Node<E> oldNode = node(index);
+        E oldVal = oldNode.element;
+        oldNode.element = element;
+        return oldVal;
+    }
+
+    //todo
+    @Override
     public E remove(int index) {
         rangeCheck(index);
-        //头删/最后一个节点的删除
         Node<E> removed = first;
+        //head
         if (index == 0) {
-            first = first.next;
+            //only one node
+            if (size == 1) first = null;
+            else {
+                first = first.next;
+                Node<E> last = node(size - 1);
+                last.next = first;
+            }
+
         } else {
-            //普通位置/尾部
-            Node<E> prevNode = node(index - 1);//2
-            removed = prevNode.next;//3
+            //current/tail
+            Node<E> prevNode = node(index - 1);
+            removed = prevNode.next;
             prevNode.next = removed.next;
         }
 
@@ -73,8 +80,7 @@ public class LinkedList<E> extends AbstractList<E> {
         return removed.element;
     }
 
-
-    // Return the index of the element
+    @Override
     public int indexOf(E element) {
         if (element == null) {
             Node<E> node = first;
@@ -82,27 +88,44 @@ public class LinkedList<E> extends AbstractList<E> {
                 if (node.element == null) return i;
                 node = node.next;
             }
+
         } else {
+
             Node<E> node = first;
             for (int i = 0; i < size; i++) {
                 if (element.equals(node.element)) return i;
                 node = node.next;
             }
-        }
 
+        }
         return ELEMENT_NOT_FOUND;
     }
-
 
     private static class Node<E> {
         E element;
         Node<E> next;
 
+
         public Node(E element, Node<E> next) {
             this.element = element;
             this.next = next;
         }
+    }
 
+    //size=3,elements=[a, b, c]
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("size=").append(size).append(",elements=[");
+        Node<E> node = first;
+        for (int i = 0; i < size; i++) {
+            if (i != 0) sb.append(", ");
+            sb.append(node.element);
+            node = node.next;
+        }
+        sb.append("]");
+
+        return sb.toString();
     }
 
 
