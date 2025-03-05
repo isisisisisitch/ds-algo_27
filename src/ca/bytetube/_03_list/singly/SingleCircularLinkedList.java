@@ -54,7 +54,6 @@ public class SingleCircularLinkedList<E> extends AbstractList<E> {
         return oldVal;
     }
 
-    //todo
     @Override
     public E remove(int index) {
         rangeCheck(index);
