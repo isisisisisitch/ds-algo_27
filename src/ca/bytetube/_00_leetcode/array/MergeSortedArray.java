@@ -1,4 +1,4 @@
-package ca.bytetube._00_leetcode;
+package ca.bytetube._00_leetcode.array;
 
 /**
  * https://leetcode.com/problems/merge-sorted-array/description/
