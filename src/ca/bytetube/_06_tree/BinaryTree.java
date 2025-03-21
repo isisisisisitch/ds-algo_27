@@ -19,13 +19,18 @@ public class BinaryTree<E> implements BinaryTreeInfo {
         return size == 0;
     }
 
+    public void clear() {
+        root = null;
+        size = 0;
+    }
+
     public void preorderTraversal() {
         preorderTraversal(root);
     }
 
     public void preorderTraversal0(Node<E> node) {
         if (node == null) return;
-        System.out.println(node.element);
+        System.out.print(node.element + " ");
         preorderTraversal0(node.left);
         preorderTraversal0(node.right);
 
@@ -39,7 +44,7 @@ public class BinaryTree<E> implements BinaryTreeInfo {
         stack.push(node);
         while (!stack.isEmpty()) {
             Node<E> pop = stack.pop();
-            System.out.println(pop.element);
+            System.out.print(pop.element + " ");
 
             if (pop.right != null) stack.push(pop.right);
             if (pop.left != null) stack.push(pop.left);
@@ -49,7 +54,7 @@ public class BinaryTree<E> implements BinaryTreeInfo {
     }
 
     public void inorderTraversal() {
-        inorderTraversal0(root);
+        inorderTraversal(root);
     }
 
     public void inorderTraversal0(Node<E> node) {
@@ -70,8 +75,8 @@ public class BinaryTree<E> implements BinaryTreeInfo {
                     node = node.left;
                 } else {
                     Node<E> pop = stack.pop();
-                    System.out.println(pop.element);
-                    node = node.right;
+                    System.out.print(pop.element + " ");
+                    node = pop.right;
                 }
             }
 
@@ -103,7 +108,7 @@ public class BinaryTree<E> implements BinaryTreeInfo {
             if (pop.left != null) stack.push(pop.left);
             if (pop.right != null) stack.push(pop.right);
         }
-        while (!helpStack.isEmpty()) System.out.println(helpStack.pop().element);
+        while (!helpStack.isEmpty()) System.out.print(helpStack.pop().element + " ");
     }
 
 
@@ -117,7 +122,7 @@ public class BinaryTree<E> implements BinaryTreeInfo {
         queue.offer(node);
         while (!queue.isEmpty()) {
             Node<E> poll = queue.poll();
-            System.out.println(poll);
+            System.out.print(poll.element + " ");
             if (poll.left != null) queue.offer(poll.left);
             if (poll.right != null) queue.offer(poll.right);
         }
@@ -161,46 +166,81 @@ public class BinaryTree<E> implements BinaryTreeInfo {
         return isComplete(root);
     }
 
-    public boolean isComplete(Node<E> node) {
-        if (node == null) return false;
-        boolean isLeaf = false;
+    public boolean isComplete(Node<E> head) {
+        if (head == null) return false;
         Queue<Node<E>> queue = new LinkedList<>();
-        queue.offer(node);
+        queue.offer(head);
+        boolean isLeaf = false;
         while (!queue.isEmpty()) {
-            node = queue.poll();
-            if (isLeaf && !(node.left == null && node.right == null)) return false;
-            if (node.left != null && node.right != null) {//1
+            Node<E> node = queue.poll();
+            if (isLeaf && !node.isLeafNode()) return false;
+            if (node.hasTwoChildren()) {
                 queue.offer(node.left);
                 queue.offer(node.right);
-            } else if (node.left == null && node.right != null) return false;//2
-            else if (node.left != null && node.right == null) {//3
+            } else if (node.left == null && node.right != null) return false;
+
+            else if (node.left != null && node.right == null) {
                 queue.offer(node.left);
                 isLeaf = true;
-            } else {//4
+            } else {
                 isLeaf = true;
             }
         }
         return true;
     }
 
+    public Node<E> predecessor(Node<E> node) {
+        if (node == null) return null;
+        //1.node.left != null
+        Node<E> left = node.left;
+        if (left != null) {
+            while (left.right != null) left = left.right;
+            return left;
+
+        }
+        //2.node.left == null && node.parent != null
+        while (node.parent != null && node == node.parent.left) node = node.parent;
+        return node.parent;
+    }
+
+    public Node<E> successor(Node<E> node) {
+        if (node == null) return null;
+        //1.node.right != null
+        Node<E> right = node.right;
+        if (right != null) {
+            while (right.left != null) right = right.left;
+            return right;
+
+        }
+        //2.node.right == null && node.parent != null
+        while (node.parent != null && node == node.parent.right) node = node.parent;
+        return node.parent;
+    }
+
     @Override
     public Object root() {
-        return null;
+        return root;
     }
 
     @Override
     public Object left(Object node) {
-        return null;
+        return ((Node<E>) node).left;
     }
 
     @Override
     public Object right(Object node) {
-        return null;
+        return ((Node<E>) node).right;
     }
 
     @Override
     public Object string(Object node) {
-        return null;
+        Node<E> myNode = (Node<E>) node;
+        String parentString = "null";
+        if (myNode.parent != null) {
+            parentString = myNode.parent.element.toString();
+        }
+
+        return myNode.element + "_p(" + parentString + ")";
     }
 
     public static class Node<E> {
@@ -215,6 +255,14 @@ public class BinaryTree<E> implements BinaryTreeInfo {
         public Node(E element, Node<E> parent) {
             this.element = element;
             this.parent = parent;
+        }
+
+        protected boolean hasTwoChildren() {
+            return this.left != null && this.right != null;
+        }
+
+        protected boolean isLeafNode() {
+            return this.left == null && this.right == null;
         }
     }
 }
