@@ -8,6 +8,8 @@ public class Main {
         for (int i = 0; i < 10; i++) {
             tree.add(i);
         }
+
+
 //        tree.add(7);
 //        tree.add(4);
 //        tree.add(9);
@@ -19,6 +21,9 @@ public class Main {
 //        tree.add(3);
 //        tree.add(12);
 //        bst.levelOrderTraversal();
+        BinaryTrees.println(tree);
+        tree.remove(0);
+        tree.remove(2);
         BinaryTrees.println(tree);
 //        tree.remove(7);
         //BinaryTrees.println(tree);
