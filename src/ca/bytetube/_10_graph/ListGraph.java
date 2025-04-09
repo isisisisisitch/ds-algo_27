@@ -178,9 +178,28 @@ public class ListGraph<V, E> extends Graph<V, E> {
         }
     }
 
-    //todo
+
     @Override
     public void bfs(V begin, VertexVisitor<V> visitor) {
+        Vertex<V, E> beginVertex = vertices.get(begin);
+        if (beginVertex == null) return;
+
+        Queue<Vertex<V, E>> queue = new LinkedList<>();
+        Set<Vertex<V, E>> visitedVertices = new HashSet<>();
+        queue.add(beginVertex);
+        visitedVertices.add(beginVertex);
+
+        while (!queue.isEmpty()) {
+            Vertex<V, E> poll = queue.poll();
+//            System.out.println(poll);
+            if (visitor.visit(poll.value)) return;
+            for (Edge<V, E> outEdge : poll.outEdges) {
+                if (visitedVertices.contains(outEdge.to)) continue;
+                queue.add(outEdge.to);
+                visitedVertices.add(outEdge.to);
+
+            }
+        }
 
     }
 
