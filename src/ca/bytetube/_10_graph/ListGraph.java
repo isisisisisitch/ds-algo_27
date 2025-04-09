@@ -156,4 +156,123 @@ public class ListGraph<V, E> extends Graph<V, E> {
         }
 
     }
+
+    @Override
+    public void bfs(V begin) {
+        Vertex<V, E> beginVertex = vertices.get(begin);
+        if (beginVertex == null) return;
+
+        Set<Vertex<V, E>> visitedVertices = new HashSet<>();
+        Queue<Vertex<V, E>> queue = new LinkedList<>();
+        queue.add(beginVertex);
+        visitedVertices.add(beginVertex);
+
+        while (!queue.isEmpty()) {
+            Vertex<V, E> poll = queue.poll();
+            System.out.print(poll.value + " ");
+            for (Edge<V, E> edge : poll.outEdges) {
+                if (visitedVertices.contains(edge.to)) continue;
+                queue.add(edge.to);
+                visitedVertices.add(edge.to);
+            }
+        }
+    }
+
+    //todo
+    @Override
+    public void bfs(V begin, VertexVisitor<V> visitor) {
+
+    }
+
+    //Set<Vertex<V, E>> visitedVertices = new HashSet<>();
+    @Override
+    public void dfs(V begin) {
+        Vertex<V, E> beginVertex = vertices.get(begin);
+        if (beginVertex == null) return;
+        Set<Vertex<V, E>> visitedVertices = new HashSet<>();
+
+        dfs(beginVertex, visitedVertices);
+
+    }
+
+
+    private void dfs(Vertex<V, E> beginVertex, Set<Vertex<V, E>> visitedVertices) {
+        System.out.print(beginVertex.value + " ");
+        visitedVertices.add(beginVertex);
+        for (Edge<V, E> edge : beginVertex.outEdges) {
+            if (visitedVertices.contains(edge.to)) continue;
+            dfs(edge.to, visitedVertices);
+
+        }
+
+
+    }
+
+    //1.先将起点压入stack中，pop(),再压回stack，存入Set中
+    //2.如果栈顶元素的outEdge锁对应的顶点不在set里，则需要把outEdge的起点和终点，顺序的压回到stack中
+    //3.再次遍历栈顶元素，，pop(),再压回stack，存入Set中
+    @Override
+    public void dfs(V begin, VertexVisitor<V> visitor) {
+        Vertex<V, E> beginVertex = vertices.get(begin);
+        if (beginVertex == null) return;
+
+        Stack<Vertex<V, E>> stack = new Stack<>();
+        Set<Vertex<V, E>> visitedVertices = new HashSet<>();
+        stack.push(beginVertex);//1
+        //System.out.print(beginVertex.value + " ");
+        if (visitor.visit(beginVertex.value)) return;
+        visitedVertices.add(beginVertex);
+
+        while (!stack.isEmpty()) {
+            Vertex<V, E> vertex = stack.pop();//1，3
+
+            for (Edge<V, E> edge : vertex.outEdges) {
+                if (visitedVertices.contains(edge.to)) continue;
+                stack.push(edge.from);//1
+                stack.push(edge.to);//3
+                // System.out.print(edge.to.value + " ");
+                if (visitor.visit(edge.to.value)) return;
+                visitedVertices.add(edge.to);
+
+                //作用：能够让迭代过程继续深入，去访问更深一层的顶点
+                break;
+            }
+        }
+
+    }
+
+    /**
+     * 1.需要准备一个map（用来存图中inDegree信息），一个queue（缓冲区），一个list（存最终排序结果）
+     * 2.将graph中所有inDegree=0的顶点存入缓冲区queue中，inDegree!=0的顶点存入map中
+     * 3.出队头元素，放入list中，并且更新map中各顶点的inDegree信息
+     * 4.从map中继续找inDegree=0的顶点，并存入queue中
+     * 5.不断重复3，4的过程，直到queue为空
+     */
+    @Override
+    public List<V> topologicalSort(V begin) {
+        //1.需要准备一个map（用来存图中inDegree信息），一个queue（缓冲区），一个list（存最终排序结果）
+        Map<Vertex<V, E>, Integer> map = new HashMap<>();
+        Queue<Vertex<V, E>> queue = new LinkedList<>();
+        List<V> list = new LinkedList<>();
+        // 2.将graph中所有inDegree=0的顶点存入缓冲区queue中，inDegree!=0的顶点存入map中
+        vertices.forEach((V v, Vertex<V, E> vertex) -> {
+            int size = vertex.inEdges.size();
+            if (size == 0) queue.add(vertex);
+            else map.put(vertex, size);
+        });
+        //5.不断重复3，4的过程，直到queue为空
+        while (!queue.isEmpty()) {
+            // 3.出队头元素，放入list中，并且更新map中各顶点的inDegree信息
+            Vertex<V, E> vertex = queue.poll();
+            list.add(vertex.value);
+            for (Edge<V, E> edge : vertex.outEdges) {
+                int toIn = map.get(edge.to) - 1;
+                //4.从map中继续找inDegree=0的顶点，并存入queue中
+                if (toIn == 0) queue.offer(edge.to);
+                else map.put(edge.to, toIn);
+            }
+        }
+
+        return list;
+    }
 }
