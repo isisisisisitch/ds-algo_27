@@ -6,6 +6,12 @@ import java.util.*;
 public class ListGraph<V, E> extends Graph<V, E> {
     private Set<Edge<V, E>> edges = new HashSet<>();
     private Map<V, Vertex<V, E>> vertices = new HashMap<>();
+    private Comparator<Edge<V, E>> edgeComparator = (o1, o2) -> weightManager.compare(o1.weight, o2.weight);
+
+    public ListGraph(WeightManager<E> weightManager) {
+        super(weightManager);
+    }
+
 
     private static class Vertex<V, E> {
         V value;
@@ -56,6 +62,10 @@ public class ListGraph<V, E> extends Graph<V, E> {
         @Override
         public int hashCode() {
             return from.hashCode() * 31 + to.hashCode();
+        }
+
+        public EdgeInfo<V, E> info() {
+            return new EdgeInfo<>(weight, from.value, to.value);
         }
 
     }
@@ -268,7 +278,7 @@ public class ListGraph<V, E> extends Graph<V, E> {
      * 5.不断重复3，4的过程，直到queue为空
      */
     @Override
-    public List<V> topologicalSort(V begin) {
+    public List<V> topologicalSort() {
         //1.需要准备一个map（用来存图中inDegree信息），一个queue（缓冲区），一个list（存最终排序结果）
         Map<Vertex<V, E>, Integer> map = new HashMap<>();
         Queue<Vertex<V, E>> queue = new LinkedList<>();
@@ -293,5 +303,55 @@ public class ListGraph<V, E> extends Graph<V, E> {
         }
 
         return list;
+    }
+
+    @Override
+    public Set<EdgeInfo<V, E>> mst() {
+        return kruscal();
+    }
+
+    private Set<EdgeInfo<V, E>> kruscal() {
+        //A mst
+        Set<EdgeInfo<V, E>> edgeInfos = new HashSet<>();
+        MinHeap<Edge<V, E>> minHeap = new MinHeap<>(edges, edgeComparator);
+        UnionFind<Vertex<V, E>> uf = new UnionFind<>();
+
+        vertices.forEach((V v, Vertex<V, E> vertex) -> {
+            uf.makeSet(vertex);
+        });
+
+        while (!minHeap.isEmpty() && edgeInfos.size() < vertices.size() - 1) {
+            Edge<V, E> edge = minHeap.remove();
+            if (uf.isSame(edge.from,edge.to)) continue;
+            edgeInfos.add(edge.info());
+            uf.union(edge.from,edge.to);
+        }
+
+        return edgeInfos;
+    }
+
+    private Set<EdgeInfo<V, E>> prim() {
+        //A mst
+        Set<EdgeInfo<V, E>> edgeInfos = new HashSet<>();
+        //S
+        Set<Vertex<V, E>> addVertices = new HashSet<>();
+        Iterator<Vertex<V, E>> iterator = vertices.values().iterator();
+        Vertex<V, E> vertex = iterator.next();//A
+        addVertices.add(vertex);
+
+        MinHeap<Edge<V, E>> minHeap = new MinHeap<>(vertex.outEdges, edgeComparator);
+
+        while (!minHeap.isEmpty() && addVertices.size() < vertices.size()) {
+            Edge<V, E> edge = minHeap.remove();
+            if (addVertices.contains(edge.to)) continue;
+            //AB--->A
+            edgeInfos.add(edge.info());
+            //B--->S
+            addVertices.add(edge.to);
+            minHeap.addAll(edge.to.outEdges);
+        }
+
+
+        return edgeInfos;
     }
 }
