@@ -1,6 +1,7 @@
 package ca.bytetube._10_graph;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Main {
@@ -25,15 +26,34 @@ public class Main {
         //test1();
 //        test2();
 //        test3();
-        test4();
+//        test4();
+        test5();
     }
+
 
     static Graph.WeightManager weightManager = new Graph.WeightManager<Double>() {
         @Override
         public int compare(Double w1, Double w2) {
             return w1.compareTo(w2);
         }
+
+        @Override
+        public Double add(Double w1, Double w2) {
+            return w1 + w2;
+        }
+
+        @Override
+        public Double zero() {
+            return 0.0;
+        }
+
     };
+
+    public static void test5() {
+        Graph<Object, Double> graph = directedGraph(Data.NEGATIVE_WEIGHT2);
+        Map<Object, Graph.PathInfo<Object, Double>> map = graph.shortestPath(0);
+        System.out.println(map);
+    }
 
     public static void test4() {
         Graph<Object, Double> graph = unDirectedGraph(Data.MST_02);

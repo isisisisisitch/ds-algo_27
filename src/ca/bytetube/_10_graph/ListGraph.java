@@ -310,6 +310,159 @@ public class ListGraph<V, E> extends Graph<V, E> {
         return kruscal();
     }
 
+    @Override
+    public Map<V, E> shortestPathWithOutPathInfo(V begin) {
+        Vertex<V, E> beginVertex = vertices.get(begin);
+        if (beginVertex == null) return null;
+        Map<Vertex<V, E>, E> paths = new HashMap<>();
+        Map<V, E> selectedPaths = new HashMap<>();
+        //A->B paths.put("B",10);
+        //A->D  paths.put("D",30);
+        //A->C  paths.put("E",100);
+        //1.初始化paths：将B,D,E放入paths中
+        for (Edge<V, E> edge : beginVertex.outEdges) {
+            paths.put(edge.to, edge.weight);
+        }
+        while (!paths.isEmpty()) {
+            Map.Entry<Vertex<V, E>, E> minEntry = getMinPathWithoutPathInfo(paths);
+            Vertex<V, E> minVertex = minEntry.getKey();
+            E minWeight = minEntry.getValue();
+            selectedPaths.put(minVertex.value, minWeight);//AB
+            paths.remove(minVertex);
+            //松弛“起飞”顶点outEdge所对应的边
+            for (Edge<V, E> edge : minVertex.outEdges) {
+                E newWeight = weightManager.add(minEntry.getValue(), edge.weight);
+                E oldWeight = paths.get(edge.to);
+                if (oldWeight == null || weightManager.compare(newWeight, oldWeight) < 0) {
+                    paths.put(edge.to, newWeight);
+                }
+            }
+        }
+
+
+        return selectedPaths;
+    }
+
+    @Override
+    public Map<V, PathInfo<V, E>> shortestPath(V begin) {
+        return bellmanFord(begin);
+    }
+
+    private Map<V, PathInfo<V, E>> dijkstra(V begin) {
+        Vertex<V, E> beginVertex = vertices.get(begin);
+        if (beginVertex == null) return null;
+        Map<Vertex<V, E>, PathInfo<V, E>> paths = new HashMap<>();
+        Map<V, PathInfo<V, E>> selectedPaths = new HashMap<>();
+        //A->B paths.put("B",10);
+        //A->D  paths.put("D",30);
+        //A->C  paths.put("E",100);
+        //1.初始化paths：将B,D,E放入paths中
+        for (Edge<V, E> edge : beginVertex.outEdges) {
+            PathInfo<V, E> path = new PathInfo<>();
+            path.weight = edge.weight;
+            path.edgeInfos.add(edge.info());
+            paths.put(edge.to, path);
+        }
+        while (!paths.isEmpty()) {
+            Map.Entry<Vertex<V, E>, PathInfo<V, E>> minEntry = getMinPath(paths);
+            Vertex<V, E> minVertex = minEntry.getKey();
+            PathInfo<V, E> minPath = minEntry.getValue();
+            selectedPaths.put(minVertex.value, minPath);//AB
+            paths.remove(minVertex);
+            //松弛“起飞”顶点outEdge所对应的边
+            for (Edge<V, E> edge : minVertex.outEdges) {
+                if (selectedPaths.containsKey(edge.to.value)) continue;
+                relaxation(edge, minPath, paths);
+            }
+        }
+        return selectedPaths;
+    }
+
+    private void relaxation(Edge<V, E> edge, PathInfo<V, E> minPath, Map<Vertex<V, E>, PathInfo<V, E>> paths) {
+        E newWeight = weightManager.add(minPath.weight, edge.weight);
+        PathInfo<V, E> oldPath = paths.get(edge.to);
+        if (oldPath == null || weightManager.compare(newWeight, oldPath.weight) < 0) {
+            PathInfo<V, E> newPath = new PathInfo<>();
+            newPath.weight = newWeight;
+            newPath.edgeInfos.addAll(minPath.edgeInfos);//A-D-C
+            newPath.edgeInfos.add(edge.info());//C-E
+
+            paths.put(edge.to, newPath);
+        }
+    }
+
+    private Map.Entry<Vertex<V, E>, PathInfo<V, E>> getMinPath(Map<Vertex<V, E>, PathInfo<V, E>> paths) {
+
+        Iterator<Map.Entry<Vertex<V, E>, PathInfo<V, E>>> iterator = paths.entrySet().iterator();
+        Map.Entry<Vertex<V, E>, PathInfo<V, E>> minEntry = iterator.next();
+        while (iterator.hasNext()) {
+            Map.Entry<Vertex<V, E>, PathInfo<V, E>> nextEntry = iterator.next();
+            if (weightManager.compare(nextEntry.getValue().weight, minEntry.getValue().weight) < 0) {
+                minEntry = nextEntry;
+            }
+        }
+
+        return minEntry;
+    }
+
+    private Map.Entry<Vertex<V, E>, E> getMinPathWithoutPathInfo(Map<Vertex<V, E>, E> paths) {
+        Iterator<Map.Entry<Vertex<V, E>, E>> iterator = paths.entrySet().iterator();
+        Map.Entry<Vertex<V, E>, E> minEntry = iterator.next();
+        while (iterator.hasNext()) {
+            Map.Entry<Vertex<V, E>, E> nextEntry = iterator.next();
+            if (weightManager.compare(nextEntry.getValue(), minEntry.getValue()) < 0) {
+                minEntry = nextEntry;
+            }
+        }
+
+        return minEntry;
+    }
+
+    private Map<V, PathInfo<V, E>> bellmanFord(V begin) {
+        Vertex<V, E> beginVertex = vertices.get(begin);
+        if (beginVertex == null) return null;
+
+        Map<V, PathInfo<V, E>> selectedPaths = new HashMap<>();
+        selectedPaths.put(beginVertex.value, new PathInfo<>(weightManager.zero()));
+
+        for (int i = 0; i < vertices.size() - 1; i++) {
+            for (Edge<V, E> edge : edges) {
+                PathInfo<V, E> fromPath = selectedPaths.get(edge.from.value);//AD
+                if (fromPath == null) continue;
+                relaxationForBellmanFord(edge, fromPath, selectedPaths);
+            }
+        }
+
+        for (Edge<V, E> edge : edges) {
+            PathInfo<V, E> fromPath = selectedPaths.get(edge.from.value);//AD
+            if (fromPath == null) continue;
+            if (relaxationForBellmanFord(edge, fromPath, selectedPaths)) {
+                throw new RuntimeException("there is a negative cycle in graph !");
+            }
+        }
+
+        selectedPaths.remove(beginVertex.value);
+
+        return selectedPaths;
+    }
+
+    private boolean relaxationForBellmanFord(Edge<V, E> edge, PathInfo<V, E> fromPath, Map<V, PathInfo<V, E>> selectedPaths) {
+        //1.newWeight
+        E newWeight = weightManager.add(fromPath.weight, edge.weight);
+        //2.oldWeight
+        PathInfo<V, E> oldPath = selectedPaths.get(edge.to.value);
+        if (oldPath != null && weightManager.compare(newWeight, oldPath.weight) >= 0) return false;
+        if (oldPath == null) {
+            oldPath = new PathInfo<>();
+            selectedPaths.put(edge.to.value, oldPath);
+        } else oldPath.edgeInfos.clear();
+
+        oldPath.weight = newWeight;
+        oldPath.edgeInfos.addAll(fromPath.edgeInfos);
+        oldPath.edgeInfos.add(edge.info());
+        return true;
+    }
+
     private Set<EdgeInfo<V, E>> kruscal() {
         //A mst
         Set<EdgeInfo<V, E>> edgeInfos = new HashSet<>();
@@ -322,9 +475,9 @@ public class ListGraph<V, E> extends Graph<V, E> {
 
         while (!minHeap.isEmpty() && edgeInfos.size() < vertices.size() - 1) {
             Edge<V, E> edge = minHeap.remove();
-            if (uf.isSame(edge.from,edge.to)) continue;
+            if (uf.isSame(edge.from, edge.to)) continue;
             edgeInfos.add(edge.info());
-            uf.union(edge.from,edge.to);
+            uf.union(edge.from, edge.to);
         }
 
         return edgeInfos;
