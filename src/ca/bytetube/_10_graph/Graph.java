@@ -43,6 +43,7 @@ public abstract class Graph<V, E> {
 
     public abstract Map<V, PathInfo<V, E>> shortestPath(V begin);
 
+    public abstract Map<V, Map<V, PathInfo<V, E>>> shortestPath();
 
     public abstract static class VertexVisitor<V> {
         public abstract boolean visit(V val);

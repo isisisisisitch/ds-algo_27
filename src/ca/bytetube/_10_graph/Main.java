@@ -27,7 +27,9 @@ public class Main {
 //        test2();
 //        test3();
 //        test4();
-        test5();
+//        test5();
+//        test6();
+          test7();
     }
 
 
@@ -48,6 +50,19 @@ public class Main {
         }
 
     };
+
+    public static void test7() {
+        Graph<Object, Double> directGraph = directedGraph(Data.BF_SP);
+        Map<Object, Graph.PathInfo<Object, Double>> map = directGraph.shortestPath("E");
+        System.out.println(map);
+
+    }
+
+    public static void test6() {
+        Graph<Object, Double> directGraph = directedGraph(Data.BF_SP);
+        Map<Object, Map<Object, Graph.PathInfo<Object, Double>>> map = directGraph.shortestPath();
+        System.out.println(map);
+    }
 
     public static void test5() {
         Graph<Object, Double> graph = directedGraph(Data.NEGATIVE_WEIGHT2);
