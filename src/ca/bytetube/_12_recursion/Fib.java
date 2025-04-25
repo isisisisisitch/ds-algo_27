@@ -1,4 +1,4 @@
-package ca.bytetube._11_recursion;
+package ca.bytetube._12_recursion;
 
 /**
  * https://leetcode.com/problems/fibonacci-number/
@@ -6,6 +6,16 @@ package ca.bytetube._11_recursion;
 public class Fib {
 
     public int fib(int n) {
+        if (n <= 1) return n;
+        return fib(n, 0, 1);
+    }
+
+    private int fib(int n, int first, int second) {
+        if (n <= 1) return second;
+        return fib(n - 1, second, first + second);
+    }
+
+    public int fib6(int n) {
         if (n <= 1) return n;
         int first = 0;
         int second = 1;
