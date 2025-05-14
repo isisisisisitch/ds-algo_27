@@ -12,7 +12,51 @@ public class LCS {
         System.out.println(lcs(nums1, nums2));
     }
 
+    public int longestCommonSubsequence(String text1, String text2) {
+        char[] nums1 = text1.toCharArray();
+        char[] nums2 = text2.toCharArray();
+
+        char[] rowsNums = nums1, colsNums = nums2;
+        if (nums1.length < nums2.length) {
+            colsNums = nums1;
+            rowsNums = nums2;
+        }
+        int[] dp = new int[colsNums.length + 1];
+
+        for (int i = 1; i <= rowsNums.length; i++) {
+            int cur = 0;
+            for (int j = 1; j <= colsNums.length; j++) {
+                int leftTop = cur;
+                cur = dp[j];
+                if (rowsNums[i - 1] == colsNums[j - 1]) dp[j] = leftTop + 1;
+                else dp[j] = Math.max(dp[j], dp[j - 1]);
+            }
+        }
+        return dp[colsNums.length];
+
+    }
+
     public static int lcs(int[] nums1, int[] nums2) {
+        int[] rowsNums = nums1, colsNums = nums2;
+        if (nums1.length < nums2.length) {
+            colsNums = nums1;
+            rowsNums = nums2;
+        }
+        int[] dp = new int[colsNums.length + 1];
+
+        for (int i = 1; i <= rowsNums.length; i++) {
+            int cur = 0;
+            for (int j = 1; j <= colsNums.length; j++) {
+                int leftTop = cur;
+                cur = dp[j];
+                if (rowsNums[i - 1] == colsNums[j - 1]) dp[j] = leftTop + 1;
+                else dp[j] = Math.max(dp[j], dp[j - 1]);
+            }
+        }
+        return dp[colsNums.length];
+    }
+
+    public static int lcs5(int[] nums1, int[] nums2) {
         int[] dp = new int[nums2.length + 1];
         for (int i = 1; i <= nums1.length; i++) {
             int cur = 0;
