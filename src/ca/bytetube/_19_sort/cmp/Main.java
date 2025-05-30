@@ -13,9 +13,12 @@ public class Main {
 //        System.out.println( Arrays.toString(array));
         //Integer[] array = {3819, 12969, 11544, 1994, 2364, 3291};
         testSorts(array,
-                new BubbleSort(),
-                new BubbleSort02(),
-                new BubbleSort03(),
+                new InsertionSort03(),
+                new InsertionSort02(),
+                new InsertionSort(),
+//                new BubbleSort(),
+//                new BubbleSort02(),
+//                new BubbleSort03(),
                 new SelectionSort(),
                 new HeapSort()
 //                  new SelcetionSort(),
