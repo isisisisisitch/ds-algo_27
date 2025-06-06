@@ -21,7 +21,9 @@ public class Main {
 //                new BubbleSort03(),
                 new SelectionSort(),
                 new HeapSort(),
-                new MergeSort()
+                new MergeSort(),
+                new QuickSort(),
+                new ShellSort()
 //                  new SelcetionSort(),
 //                new InsertionSort(),
 //                new InsertionSort2(),
